@@ -62,7 +62,8 @@ The data is generated through a feature extractor, which synthesizes the high-le
 
 ## Results
 
-The model's performance, including accuracy, confusion matrix, and ROC curve, can be found in the relevant sections within the `notebooks/` and `models/` directories. 
+The integration of the models led to a significant improvement in performance, evidenced by the actDCF and minDCF values. The fusion of GMM, SVM and logistic regression achieved the best performance with an actDCF of 0.06403 and a minDCF of 0.0609, demonstrating good model calibration and fit. In addition, the analysis revealed that the final model showed robustness across different applications, maintaining effective performance despite variations in error costs. These results confirm the effectiveness of the system in detecting fingerprint forgeries.
+
 
 <br></br>
 
