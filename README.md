@@ -29,11 +29,11 @@ The data is generated through a feature extractor, which synthesizes the high-le
 
 
 
-├── dataset/ # Folder containing the dataset  
-├── src/ # Source code for data processing and model implementation  
-├── eval/ # Scripts for model evaluation and analysis  
-├── README.md # Project documentation  
-└── requirements.txt # Required dependencies  
+        ├── dataset/          # Folder containing the dataset  
+        ├── src/              # Source code for data processing and model implementation  
+        ├── eval/             # Scripts for model evaluation and analysis  
+        ├── README.md         # Project documentation  
+        └── requirements.txt  # Required dependencies  
 
 
 
@@ -59,31 +59,33 @@ The data is generated through a feature extractor, which synthesizes the high-le
 
 
 <br></br>
+------------------
 
 ## Results
 
-The integration of the models led to a significant improvement in performance, evidenced by the actDCF and minDCF values. The fusion of GMM, SVM and logistic regression achieved the best performance with an actDCF of 0.06403 and a minDCF of 0.0609, demonstrating good model calibration and fit. In addition, the analysis revealed that the final model showed robustness across different applications, maintaining effective performance despite variations in error costs. These results confirm the effectiveness of the system in detecting fingerprint forgeries.
+The integration of the models led to a significant improvement in performance, evidenced by the actDCF and minDCF values. The fusion of GMM and QUadratic Logistic Regression achieved the best performance, demonstrating good model calibration and fit. In addition, the analysis revealed that the final model showed robustness across different applications, maintaining effective performance despite variations in error costs. These results confirm the effectiveness of the system in detecting fingerprint forgeries.
 
+### Final Model: Fusion GMM - Quadratic Logistic Regression
 
 <br></br>
 
   ### *Training*
 
-  |     Model                     |     minDCF     |     actDCF     |
-  |-------------------------------|----------------|----------------|
-  | GMM-SVM-Logistic Regression   | Riga 1 Col 2   | Riga 1 Col 3   |
-  | GMM-SVM                       | Riga 2 Col 2   | Riga 2 Col 3   |
-  | GMM-Logistic Regression       | Riga 3 Col 2   | Riga 3 Col 3   |
-  | SVM-Logistic Regression       | Riga 3 Col 2   | Riga 3 Col 3   |
+  |     Model                     |     actDCF     |
+  |-------------------------------|----------------|
+  | GMM-SVM-Logistic Regression   | 0.167          |
+  | GMM-SVM                       | 0.165          |
+  | GMM-Logistic Regression       | 0.134          |
+  | SVM-Logistic Regression       | 0.194          |
 
   <br>
 
 
   ### *Evaluation*
 
-  |     Model                     |     minDCF     |     actDCF     |
-  |-------------------------------|----------------|----------------|
-  | GMM-SVM-Logistic Regression   | Riga 1 Col 2   | Riga 1 Col 3   |
-  | GMM-SVM                       | Riga 2 Col 2   | Riga 2 Col 3   |
-  | GMM-Logistic Regression       | Riga 3 Col 2   | Riga 3 Col 3   |
-  | SVM-Logistic Regression       | Riga 3 Col 2   | Riga 3 Col 3   |
+  |     Model                     |     actDCF     |
+  |-------------------------------|----------------|
+  | GMM-SVM-Logistic Regression   | 0.1973         |
+  | GMM-SVM                       | 0.2020         |
+  | GMM-Logistic Regression       | 0.1927         |
+  | SVM-Logistic Regression       | 0.2681         |

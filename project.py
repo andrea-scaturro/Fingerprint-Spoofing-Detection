@@ -239,22 +239,27 @@ def computeErrorPlot(DVAL,LVAL,llr1,llr2,llr3 ,title='',path=''):
 
 def evaluateGMM(DTR,LTR,DVAL,LVAL):
      
-     for type in ['full', 'diagonal']:
+    for type in ['full', 'diagonal']:
 
         print()
         print(type.upper(),":\n")
 
         for numC in [1,2,4,8,16,32]:
-            gmm0 = train_GMM_LBG_EM(DTR[:, LTR==0], numC, type =type, psiEig = 0.01)
-            gmm1 = train_GMM_LBG_EM(DTR[:, LTR==1], numC, type = type, psiEig = 0.01)
+
+            for numC2 in [1,2,4,8,16,32]:
+
+                gmm0 = train_GMM_LBG_EM(DTR[:, LTR==0], numC, type =type, psiEig = 0.01)
+                gmm1 = train_GMM_LBG_EM(DTR[:, LTR==1], numC2, type = type, psiEig = 0.01)
             
 
-            SLLR = logpdf_GMM(DVAL, gmm1) - logpdf_GMM(DVAL, gmm0)
+                SLLR = logpdf_GMM(DVAL, gmm1) - logpdf_GMM(DVAL, gmm0)
             
             
-            minDCF=compute_minDCF(DVAL,LVAL,SLLR,0.1)
-            dcf = compute_actDCF(DVAL,LVAL,SLLR,0.1)
-            print ('numC = %d: minDCF = %.4f  DCF = %.4f' % (numC, minDCF, dcf))
+                minDCF=compute_minDCF(DVAL,LVAL,SLLR,0.1)
+                dcf = compute_actDCF(DVAL,LVAL,SLLR,0.1)
+                
+                print ('numC = %d   numC2 = %d     minDCF = %.4f  DCF = %.4f' % (numC, numC2 ,minDCF, dcf))
+
 
 
          
@@ -373,21 +378,21 @@ def evaluateSVMRBF(DTR,LTR,DVAL,LVAL):
 
 def evaluateSVM(DTR,LTR,DVAL,LVAL):
 
-    #minDCF_lin,DCF_lin,C_lin = evaluateSVMLinear(DTR,LTR,DVAL,LVAL)
-    #minDCF_poly,DCF_poly,C_poly = evaluateSVMPoly(DTR,LTR,DVAL,LVAL)
+    minDCF_lin,DCF_lin,C_lin = evaluateSVMLinear(DTR,LTR,DVAL,LVAL)
+    minDCF_poly,DCF_poly,C_poly = evaluateSVMPoly(DTR,LTR,DVAL,LVAL)
     minDCF_rbf,DCF_rbf,C_rbf,gamma = evaluateSVMRBF(DTR,LTR,DVAL,LVAL)
 
-    # print()
-    # print('SVM Linear: \n')
-    # print('\tminDCF: ', minDCF_lin)
-    # print('\tDCF: ', DCF_lin)
-    # print('\tC: ', C_lin)
+    print()
+    print('SVM Linear: \n')
+    print('\tminDCF: ', minDCF_lin)
+    print('\tDCF: ', DCF_lin)
+    print('\tC: ', C_lin)
 
-    # print()
-    # print('SVM Polynomial: \n')
-    # print('\tminDCF: ', minDCF_poly)
-    # print('\tDCF: ', DCF_poly)
-    # print('\tC: ', C_poly)
+    print()
+    print('SVM Polynomial: \n')
+    print('\tminDCF: ', minDCF_poly)
+    print('\tDCF: ', DCF_poly)
+    print('\tC: ', C_poly)
 
     print()
     print('SVM RBF: \n')
@@ -576,7 +581,7 @@ if __name__ == '__main__':
 
     D, L = load('dataset/trainData.txt')
     
-    DEVAL, LEVAL = load('dataset/evalData.txt')
+    DTE, LTE = load('dataset/evalData.txt')
 
 
     (DTR, LTR), (DVAL, LVAL) = split_db_2to1(D, L)
@@ -587,7 +592,7 @@ if __name__ == '__main__':
     gmm0 = train_GMM_LBG_EM(DTR[:, LTR==0], 8, type = 'diagonal', psiEig = 0.01)
     gmm1 = train_GMM_LBG_EM(DTR[:, LTR==1], 32, type = 'diagonal', psiEig = 0.01)
                             
-    SLLR_gmm = logpdf_GMM(DEVAL, gmm1) - logpdf_GMM(DEVAL, gmm0)
+    SLLR_gmm = logpdf_GMM(DTE, gmm1) - logpdf_GMM(DTE, gmm0)
             
 
 
@@ -596,11 +601,11 @@ if __name__ == '__main__':
         
     fScore = train_dual_SVM_kernel(DTR, LTR, 31.622776601683793, kernelFunc, 1)
     
-    SLLR_svm = fScore(DEVAL)        
+    SLLR_svm = fScore(DTE)        
 
     
     DTR_quadratic  = quadratic(DTR)
-    DVAL_quadratic = quadratic(DEVAL)
+    DVAL_quadratic = quadratic(DTE)
                             
     params_withgrad = trainLogReg_sol1_withgrad_weight(DTR_quadratic, LTR,0.03162277660168379, pi)  
     w = params_withgrad[0][0:-1]
@@ -612,84 +617,84 @@ if __name__ == '__main__':
 
 
 
-    fusedScore_allClassisy,fusedLabel_allClassify = fusion_allC(LEVAL, SLLR_gmm,SLLR_svm,SLLR_logReg)
+    fusedScore_allClassisy,fusedLabel_allClassify = fusion_allC(LTE, SLLR_gmm,SLLR_svm,SLLR_logReg)
 
     
     
-    fusedScoreGMM_SVM, fusedLabelGMM_SVM = fusion_2Classify(LEVAL, SLLR_gmm,SLLR_svm)
-    fusedScoreGMM_Log, fusedLabelGMM_Log = fusion_2Classify(LEVAL, SLLR_gmm,SLLR_logReg)
-    fusedScoreSVM_Log, fusedLabelSVM_Log = fusion_2Classify(LEVAL, SLLR_svm,SLLR_logReg)
+    fusedScoreGMM_SVM, fusedLabelGMM_SVM = fusion_2Classify(LTE, SLLR_gmm,SLLR_svm)
+    fusedScoreGMM_Log, fusedLabelGMM_Log = fusion_2Classify(LTE, SLLR_gmm,SLLR_logReg)
+    fusedScoreSVM_Log, fusedLabelSVM_Log = fusion_2Classify(LTE, SLLR_svm,SLLR_logReg)
     
 
     #eval fusion of the 3 classifier 
     print()
     print('Fusion All Classify\n')
-    print('\tminDCF: ' , compute_minDCF(DEVAL,fusedLabel_allClassify,fusedScore_allClassisy,pi))
-    print('\tactDCF: ' , compute_actDCF(DEVAL,fusedLabel_allClassify,fusedScore_allClassisy,pi))
+    print('\tminDCF: ' , compute_minDCF(DTE,fusedLabel_allClassify,fusedScore_allClassisy,pi))
+    print('\tactDCF: ' , compute_actDCF(DTE,fusedLabel_allClassify,fusedScore_allClassisy,pi))
 
     path = 'plot/plot_eval/Valuation Fuse A'
-    #bayes_error_plot(DEVAL,fusedLabel_allClassify,fusedScore_allClassisy,'Valuation Fuse A',path)
-    #evalFusion_application(DEVAL,fusedLabel_allClassify,fusedScore_allClassisy)
+    bayes_error_plot(DTE,fusedLabel_allClassify,fusedScore_allClassisy,'Valuation Fuse A',path)
+    evalFusion_application(DTE,fusedLabel_allClassify,fusedScore_allClassisy)
 
     # eval GMM - SVM
 
     print()
     print('Fusion GMM - SVM \n')
     
-    print('\tactDCF: ' , compute_actDCF(DEVAL,fusedLabelGMM_SVM,fusedScoreGMM_SVM,pi))
+    print('\tactDCF: ' , compute_actDCF(DTE,fusedLabelGMM_SVM,fusedScoreGMM_SVM,pi))
 
     # eval GMM - Logistc Regression
     print()
     print('Fusion GMM - Logistic Regression \n')
     
-    print('\tactDCF: ' , compute_actDCF(DEVAL,fusedLabelGMM_Log,fusedScoreGMM_Log,pi))
+    print('\tactDCF: ' , compute_actDCF(DTE,fusedLabelGMM_Log,fusedScoreGMM_Log,pi))
 
     # eval SVM - Logistc Regression
     print()
     print('Fusion SVM - Logistic Regression \n')
     
-    print('\tactDCF: ' , compute_actDCF(DEVAL,fusedLabelSVM_Log,fusedScoreSVM_Log,pi))
+    print('\tactDCF: ' , compute_actDCF(DTE,fusedLabelSVM_Log,fusedScoreSVM_Log,pi))
 
     path = 'plot/plot_eval/Valuation Fuse 2'
-    #bayes_error_plotDCF(DEVAL,fusedLabel_allClassify,fusedScoreGMM_SVM,fusedScoreGMM_Log,fusedScoreSVM_Log,fusedScore_allClassisy,'Valuation Fuse 2',path)
+    bayes_error_plotDCF(DTE,fusedLabel_allClassify,fusedScoreGMM_SVM,fusedScoreGMM_Log,fusedScoreSVM_Log,fusedScore_allClassisy,'Valuation Fuse 2',path)
 
 
-    scoreCalibrateGMM, labelsCalibrateGMM = scoreCalibration(DTR,LTR,DEVAL,LEVAL,'gmm')
-    scoreCalibrateSVM, labelsCalibrateSVM = scoreCalibration(DTR,LTR,DEVAL,LEVAL,'svm')
-    scoreCalibrateLogReg, labelsCalibrateLogReg = scoreCalibration(DTR,LTR,DEVAL,LEVAL,'logReg')
+    scoreCalibrateGMM, labelsCalibrateGMM = scoreCalibration(DTR,LTR,DTE,LTE,'gmm')
+    scoreCalibrateSVM, labelsCalibrateSVM = scoreCalibration(DTR,LTR,DTE,LTE,'svm')
+    scoreCalibrateLogReg, labelsCalibrateLogReg = scoreCalibration(DTR,LTR,DTE,LTE,'logReg')
 
     print()
     print('Gmm\n')
-    print('\tminDCF: ' , compute_minDCF(DEVAL,labelsCalibrateGMM,scoreCalibrateGMM,pi))
-    print('\tactDCF: ' , compute_actDCF(DEVAL,labelsCalibrateGMM,scoreCalibrateGMM,pi))
+    print('\tminDCF: ' , compute_minDCF(DTE,labelsCalibrateGMM,scoreCalibrateGMM,pi))
+    print('\tactDCF: ' , compute_actDCF(DTE,labelsCalibrateGMM,scoreCalibrateGMM,pi))
 
 
     print()
     print('SVM\n')
-    print('\tminDCF: ' , compute_minDCF(DEVAL,labelsCalibrateSVM,scoreCalibrateSVM,pi))
-    print('\tactDCF: ' , compute_actDCF(DEVAL,labelsCalibrateSVM,scoreCalibrateSVM,pi))
+    print('\tminDCF: ' , compute_minDCF(DTE,labelsCalibrateSVM,scoreCalibrateSVM,pi))
+    print('\tactDCF: ' , compute_actDCF(DTE,labelsCalibrateSVM,scoreCalibrateSVM,pi))
 
 
     print()
     print('Logistc Regression')
-    print('\tminDCF: ' , compute_minDCF(DEVAL,labelsCalibrateLogReg,scoreCalibrateLogReg,pi))
-    print('\tactDCF: ' , compute_actDCF(DEVAL,labelsCalibrateLogReg,scoreCalibrateLogReg,pi))
+    print('\tminDCF: ' , compute_minDCF(DTE,labelsCalibrateLogReg,scoreCalibrateLogReg,pi))
+    print('\tactDCF: ' , compute_actDCF(DTE,labelsCalibrateLogReg,scoreCalibrateLogReg,pi))
     
-    #path = 'plot/plot_eval/Valuation Classify'
-    #computeErrorPlot(DEVAL,LEVAL,SLLR_gmm,SLLR_svm,SLLR_logReg,'Valuation Classify',path)
+    path = 'plot/plot_eval/Valuation Classify'
+    computeErrorPlot(DTE,LTE,SLLR_gmm,SLLR_svm,SLLR_logReg,'Valuation Classify',path)
 
-    #path = 'plot/plot_eval/Valuation ClassifyCal'
-    #computeErrorPlot(DEVAL,labelsCalibrateGMM,scoreCalibrateGMM,scoreCalibrateSVM,scoreCalibrateLogReg,'Valuation Classify Calibrate',path)
+    path = 'plot/plot_eval/Valuation ClassifyCal'
+    computeErrorPlot(DTE,labelsCalibrateGMM,scoreCalibrateGMM,scoreCalibrateSVM,scoreCalibrateLogReg,'Valuation Classify Calibrate',path)
 
 
-    # print()
-    # print("Evaluate: SVM")
-    # evaluateSVM(DTR,LTR,DEVAL,LEVAL)
+    print()
+    print("Evaluate: SVM")
+    evaluateSVM(DTR,LTR,DTE,LTE)
 
-    # print()
-    # print("Evaluate: GMM")
-    # evaluateGMM(DTR,LTR,DEVAL,LEVAL)
+    print()
+    print("Evaluate: GMM")
+    evaluateGMM(DTR,LTR,DTE,LTE)
 
-    # print()
-    # print("Evaluate: Logistic Regression")
-    # evaluateLogReg(DTR,LTR,DEVAL,LEVAL)
+    print()
+    print("Evaluate: Logistic Regression")
+    evaluateLogReg(DTR,LTR,DTE,LTE)
