@@ -14,77 +14,7 @@ def vcol(v):
 
 
 
-def optimal_bayes_decision(DVAL,LVAL,pi1, Cfn, Cfp):
-   
-
-    for l in np.unique(LVAL): 
-        
-        D = DVAL[:, LVAL==l]
-        L = LVAL[LVAL == l]  
-        m,C = compute_mu_C(D) 
-        llr = np.exp(compute_ll(DVAL, m, C))
-
-    
-
-    prior_HT = pi1
-    prior_HF = 1 - pi1
-    
-    posterior_HT = prior_HT * np.exp(llr) / (prior_HT * np.exp(llr) + prior_HF)
-    posterior_HF = 1 - posterior_HT
-    
-    
-    cost_HT = Cfp * posterior_HF
-    cost_HF = Cfn * posterior_HT
-    
-    
-    decisions = np.where(cost_HT < cost_HF, 1, 0)
-
-    
-    conf_matrix = np.zeros((2, 2), dtype=int)
-
-
-    for true_label, decision in zip(LVAL, decisions):
-        if  decision == 0 and true_label == 0:
-            conf_matrix[0, 0] += 1
-        elif decision == 1 and true_label == 0 :
-            conf_matrix[1, 0] += 1
-        elif decision == 0 and true_label == 1:
-            conf_matrix[0, 1] += 1
-        elif decision == 1 and true_label == 1:
-            conf_matrix[1, 1] += 1
-
-    print("\nMatrice di Confusione (pi: {:.2f})".format(pi1))
-    print(conf_matrix,"\n")
-
-    return conf_matrix
-
-
-
-
-def confusion_matrix_commedia_with_cost(DVAL, LVAL,llr,prior1, Cfp, Cfn):    
-   
-
-    prior0 = 1 - prior1
-    threshold = -np.log((prior1 * Cfn) / (prior0 * Cfp))
-
-    predictions = np.zeros_like(llr, dtype=int)  
-    predictions[llr > threshold] = 1
-    predictions[llr <= threshold] = 0
-    
-    
-    confusion_matrix = np.zeros((2, 2), dtype=int)
-    for true_class, predicted_class in zip(LVAL, predictions):
-        confusion_matrix[int(predicted_class), int(true_class)] += 1  
-    
-    print("\nMatrice di Confusione (pi: {:.2f})".format(prior1))
-    print(confusion_matrix,"\n")
-
-
-
-
 def compute_DCF(DVAL, LVAL,llr,pi1, Cfn=1, Cfp=1):
-    
-    
     
     prior_HT = pi1
     prior_HF = 1 - pi1
@@ -488,8 +418,8 @@ def compute_logPosterior(S_logLikelihood, v_prior):
 def multiclass_eval(ll, ll_labels, C, vPrior):
     
     log_posterior = compute_logPosterior(ll, vPrior)
-    posterior = np.exp(log_posterior) #la formula prevede il prodotto per la Posterior, non per la logPosterior!!!!
-    C_final = np.dot(C, posterior) #prendi come predizione quello che ti da valore minore dal prodotto di posterior * costo
+    posterior = np.exp(log_posterior)
+    C_final = np.dot(C, posterior) 
     predictions =np.argmin(C_final, axis=0)
     
     confusion_matrix = np.zeros((3, 3), dtype=int)
@@ -500,18 +430,14 @@ def multiclass_eval(ll, ll_labels, C, vPrior):
     print("\nMatrice di Confusione:")
     print(confusion_matrix,"\n")
     
-    DCFnorm=np.min(np.dot(C, vPrior)) #è la DCf di un dummy system, che predice solo in base al rapporto tra prior e costi
+    DCFnorm=np.min(np.dot(C, vPrior)) 
     
-    # Calcola i rapporti di classificazione errati
     misclassification_ratios = confusion_matrix / np.sum(confusion_matrix, axis=0, keepdims=True)
-    # Calcola il costo di rilevamento non normalizzato
-
     DCFu = np.sum(vPrior[:, np.newaxis] * misclassification_ratios.T * C)
-
-
-    print("Costo di rilevamento non normalizzato (DCFu): %.3f" %DCFu)
+    
+    print("DCFu: %.3f" %DCFu)
     DCF = DCFu / DCFnorm
-    print("Costo di rilevamento normalizzato (DCF): %.3f" %DCF)
+    print("DCF: %.3f" %DCF)
 
 
 
